@@ -15,6 +15,7 @@ def beliefassignment(p, e, agents):# assigns beliefs within a margin e of the in
             
    
     return beliefs
+    
 
 
 def villagedistributer(num_villages, agents):#distributes the agents in the main list of agents through a number villages
@@ -49,40 +50,94 @@ def make_ring_lattice(nodes, k): #Make a ring lattice out of a list of nodes, wh
     return sym_closure(edges_of_ring_lattice)
 
 
-def rewiring_ring_lattice(edges, p, nodes):
+def rewiring_ring_lattice(edges, p, nodes):#rewire the graph (nodes, edges) so that each node forms an edge with another node with probability p.
     rewired_list = []
-    n = p * 100
     existing_edges = set()
     for e in edges:
         existing_edges.add(tuple(e))
     for edge in edges:
-        if random.randint(0, 100) < n:
+        if random.random() < p:
             attempts = 0
-            max_attempts = 100
+        
             new_edge = None
-            while attempts < max_attempts:
+            while attempts < 100:
                 attempts += 1
                 new_node = random.choice(nodes)
                 if new_node != edge[0]:
-                    candidate1 = tuple(sorted((edge[0], new_node)))
-                    candidate2 = tuple(sorted((new_node, edge[0])))
-                    if candidate1 not in existing_edges:
-                        new_edge1 = (edge[0], new_node)
-                        new_edge2 = (edge[0], new_node)
-
-                        existing_edges.add(candidate1)
-                        existing_edges.add(candidate2)
+                    candidate = tuple(sorted((edge[0], new_node)))
+                   
+                    if candidate not in existing_edges:
+                       
+                        existing_edges.add(candidate)
+                        rewired_list.append(candidate)
+                        
+                     
 
                         break
-
-            if new_edge is None:
-                rewired_list.append(edge)
-            else:
-                rewired_list.append(new_edge1)
-                rewired_list.append(new_edge2)
+          
         else:
             rewired_list.append(edge)
-    return rewired_list
+            
+    return sym_closure(rewired_list)
+
+
+def makesmallworldnetworksinvillages(villagelist, k, p): # transform each of the villages in the village list into a small world network
+         smallworldedvillages = [rewiring_ring_lattice(make_ring_lattice(v, k), p, v) for v in village list]
+         
+         return smallworldedvillages
+    
+#---- PART 3: UPDATE THE AGENTS BELIEFS BASED ON THE BELIEFS OF OTHER AGENTS IN THE NETWORK
+
+def findneighbours(a, list_of_ordered_pairs):# finds all the neighbours (the second element of an ordered pair) of an element a
+    neighbours = [a]
+ 
+    for pair in list_of_ordered_pairs:
+        if pair[0] == a:
+            if pair[1] not in neighbours:
+                neighbours.append(pair[1])
+         
+    return neighbours
+
+
+def findallneighbours(smallworldedvillages):
+     # this function (input: a list of smallworldnetworks; output: a list of lists containing the neighbours of all agents)finds ALL neighbours of ALL AGENTS in each smallword network obtained from the villages
+    allneighbours = []
+
+    for village in smallworldedvillages:
+        for edge in village:
+            if findneighbours(edge[0], village) not in allneighbours:
+                allneighbours.append(findneighbours(edge[0], village))
+    return allneighbours
+
+def weight_assignment(x):# This is necessary for the deGroot model of belief update: outputs a list with x belief weights for x many agents
+    agentweights = [random.random() for _ in range(x)]
+    normalized = [w/sum(agentweights) for w in agentweights]
+    agentsnice = np.array(normalized)
+    return agentsnice
+
+def update_beliefs_with_degroot(allneighbours, beliefs): #performs deGroot belief update
+
+    for listofneighbours in allneighbours:
+        
+        current_beliefs = np.array([beliefs[a][-1] for a in listofneighbours])
+
+        weights = weight_assignment(len(listofneighbours))
+        new_beliefs = weights @ current_beliefs
+
+        beliefs[listofneighbours[0]].append(new_beliefs)
+    return beliefs
+
+def update_beliefs_with_degroot_multiple_times(n, allneighbours, beliefs):
+    for i in range(n):
+   
+        update_beliefs_with_degroot(allneighbours, beliefs)
+        
+    return beliefs
+
+
+
+
+
 
 def main():
     try:
@@ -196,35 +251,6 @@ def main():
 )
 
 
-def update_beliefs_with_degroot_multiple_times(n, allneighbours, beliefs):
-    i = 0
-    while i < n:
-        update_beliefs_with_degroot(allneighbours, beliefs)
-        i+=1
-    return beliefs
-
-
-
-
-
-
-def update_beliefs_with_degroot(allneighbours, beliefs):
-
-    for listofneighbours in allneighbours:
-        # Collect the latest belief for all agents in this neighbourhood
-        current_beliefs = np.array([beliefs[a][-1] for a in listofneighbours])
-
-        weights = weight_assignment(len(listofneighbours))
-        new_beliefs = weights @ current_beliefs
-
-        beliefs[listofneighbours[0]].append(new_beliefs)
-    return beliefs
-
-def weight_assignment(x):
-    agentweights = [random.random() for _ in range(x)]
-    normalized = [w/sum(agentweights) for w in agentweights]
-    agentsnice = np.array(normalized)
-    return agentsnice
 
 
 
@@ -234,38 +260,13 @@ def weight_assignment(x):
 
 
 
-def findallneighbours(smallworldedvillages):
-     # this function (input: a list of smallworldnetworks; output: a list of lists containing the neighbours of all agents)finds ALL neighbours of ALL AGENTS in each smallword network obtained from the villages
-    allneighbours = []
 
-    for village in smallworldedvillages:
-        for edge in village:
-            if findneighbours(edge[0], village) not in allneighbours:
-                allneighbours.append(findneighbours(edge[0], village))
-    return allneighbours
 
-def findneighbours(a, list_of_ordered_pairs):# finds all the neighbours (the second element of an ordered pair) of an element a in a list - list_of_ordered_pairs
-    neighbours = [a]
-    f = len(list_of_ordered_pairs)
-    i = 0
-    while i < f:
-        if list_of_ordered_pairs[i][0] == a:
-            if list_of_ordered_pairs[i][1] not in neighbours:
-                neighbours.append(list_of_ordered_pairs[i][1])
-            i += 1
-        else:
-            i += 1
-    return neighbours
 
-def makesmallworldnetworksinvillages(villagelist, k, p):
-         smallworldedvillages = []
-         i=0
 
-         while i < len(villagelist):
 
-             smallworldedvillages.append(rewiring_ring_lattice(make_ring_lattice(villagelist[i], k), p, villagelist[i]))
-             i += 1
-         return smallworldedvillages
+
+
 
 
 
