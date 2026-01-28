@@ -6,20 +6,19 @@ def totalagentsmaker(n):#makes a list with n-many agents, represented by the int
     return list(range(n))
 
 def beliefassignment(p, e, agents):# assigns beliefs within a margin e of the initial probability/ degree of belief p, to each of the agents in list agents
-    beliefs  ={}
-    for agent in agents:
+   beliefs  ={}
+   for agent in agents:
         if random.random() < 0.95:
-            beliefs[agent] = p + random.uniform(0, e)
+            beliefs[agent] = [p + random.uniform(0, e)]
         else:
-            beliefs[agent] = random.uniform(p, 1)
+            beliefs[agent] = [random.uniform(p, 1)]
             
-   
-    return beliefs
+   return beliefs
     
 
 
 def villagedistributer(num_villages, agents):#distributes the agents in the main list of agents through a number villages
-    if agents % num_villages != 0:
+    if len(agents) % num_villages != 0:
         raise ValueError("The number of agents must be divisible by the number of villages!")
     agents = agents.copy()
     random.shuffle(agents)
@@ -32,7 +31,7 @@ def villagedistributer(num_villages, agents):#distributes the agents in the main
 
 def sym_closure(edges): #Gives the symmetric closure of a list, necessary because the relations between agents are symmetric
     result = set(edges)
-    for a, b in result:
+    for a, b in list(result):
         result.add((b,a))
     
     return(list(result))
@@ -82,7 +81,7 @@ def rewiring_ring_lattice(edges, p, nodes):#rewire the graph (nodes, edges) so t
 
 
 def makesmallworldnetworksinvillages(villagelist, k, p): # transform each of the villages in the village list into a small world network
-         smallworldedvillages = [rewiring_ring_lattice(make_ring_lattice(v, k), p, v) for v in village list]
+         smallworldedvillages = [rewiring_ring_lattice(make_ring_lattice(v, k), p, v) for v in villagelist]
          
          return smallworldedvillages
     
@@ -116,23 +115,30 @@ def weight_assignment(x):# This is necessary for the deGroot model of belief upd
     return agentsnice
 
 def update_beliefs_with_degroot(allneighbours, beliefs): #performs deGroot belief update
+    new_values = {}
 
-    for listofneighbours in allneighbours:
-        
-        current_beliefs = np.array([beliefs[a][-1] for a in listofneighbours])
+    for group in allneighbours:
+        values = np.array([beliefs[a][-1] for a in group])
+        weights = weight_assignment(len(group))
+        new_values[group[0]] = weights @ values
 
-        weights = weight_assignment(len(listofneighbours))
-        new_beliefs = weights @ current_beliefs
+    for a, v in new_values.items():
+        beliefs[a].append(float(v))
 
-        beliefs[listofneighbours[0]].append(new_beliefs)
     return beliefs
+
+
+
+
 
 def update_beliefs_with_degroot_multiple_times(n, allneighbours, beliefs):
     for i in range(n):
    
         update_beliefs_with_degroot(allneighbours, beliefs)
-        
     return beliefs
+
+
+
 
 
 
@@ -196,59 +202,52 @@ def main():
         print("Value must be an integer")
 
 
-    beliefsdictionary = beliefassignment(m, epsilon, totalagentsmaker(n))
+    agents = totalagentsmaker(n)
 
-    #totalagentsmaker(n)
-    #villagedistributer(g, totalagentsmaker(n))
-    #update_beliefs_with_degroot_multiple_times(r,
-        #findallneighbours(
-            #makesmallworldnetworksinvillages(
-                #villagedistributer(g, totalagentsmaker(n)), k, p
-            #)
-        #),
-        #beliefsdictionary
-    #)
+    beliefsdictionary = beliefassignment(m, epsilon, agents)
 
-    #belief_matrix = np.array(list(beliefsdictionary.values()))
-    #average_beliefs = belief_matrix.mean(axis = 0)
-    #time_steps = np.arange(len(average_beliefs))
-    #plt.plot(time_steps, average_beliefs, marker='o')
-    #plt.xlabel("Time step")
-    #plt.ylabel("Average belief")
-    #plt.title("Average Belief Over Time")
-    #plt.grid(True)
-    #plt.show()
+    villages = villagedistributer(g, agents)
+    networks = makesmallworldnetworksinvillages(villages, k, p)
+    allneighbours = findallneighbours(networks)
 
-
-    #print(beliefassignment(m, epsilon, totalagentsmaker(n)))
-    print( beliefassignment(m, epsilon, totalagentsmaker(n)))
-    print(f"initial beliefs:{beliefsdictionary}")
-    print(makesmallworldnetworksinvillages(villagedistributer(g, totalagentsmaker(n)), k, p))
-
-
-    print(findallneighbours(
-            makesmallworldnetworksinvillages(
-                villagedistributer(g, totalagentsmaker(n)), k, p
-            )))
-    print(update_beliefs_with_degroot(
-        findallneighbours(
-            makesmallworldnetworksinvillages(
-                villagedistributer(g, totalagentsmaker(n)), k, p
-            )
-        ),
-        beliefsdictionary
+    update_beliefs_with_degroot_multiple_times(
+    r,
+    allneighbours,
+    beliefsdictionary
     )
-)
-    print(
-    update_beliefs_with_degroot_multiple_times(r,
-        findallneighbours(
-            makesmallworldnetworksinvillages(
-                villagedistributer(g, totalagentsmaker(n)), k, p
-            )
-        ),
-        beliefsdictionary
-    )
-)
+
+    belief_matrix = np.array(list(beliefsdictionary.values()))
+    average_beliefs = belief_matrix.mean(axis = 0)
+    time_steps = np.arange(len(average_beliefs))
+    plt.plot(time_steps, average_beliefs, marker='o')
+    plt.xlabel("Time step")
+    plt.ylabel("Average belief")
+    plt.title("Average Belief Over Time")
+    plt.grid(True)
+    plt.show()
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
