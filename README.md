@@ -1,2 +1,80 @@
-# Agent-based-model-for-Vagueness
-This is a model I recovered from an algorithm I made for my masters thesis
+
+Vague Term Convergence Simulation
+
+This project implements a simplified simulation algorithm inspired by my first Master’s thesis, which investigated the role of vague terms in human language. Natural languages remain functional and understandable despite vagueness, and this project explores how agents interacting in groups can converge on shared interpretations over time.
+
+Overview
+
+The simulation models agents communicating with each other and updating their beliefs iteratively. While the original thesis dealt with vague linguistic terms, this simplified version operates on degrees of belief in abstract terms, allowing experimentation with belief convergence in structured groups.
+
+Algorithm Workflow
+
+Create agents and assign initial beliefs:
+
+Each agent is assigned a degree of belief, representing their initial understanding of a term or concept.
+
+Beliefs are initialized randomly within a small margin around a starting probability.
+
+Distribute agents into groups (villages):
+
+Agents are evenly distributed across groups to simulate localized communities.
+
+Construct group networks:
+
+Each group is transformed into a small-world network.
+
+Small-world networks are graphs that balance high local clustering with short average path lengths, which is suitable for modeling information transmission in real-world social networks.
+
+Groups start as ring lattices (where each agent connects to k neighbors) and are rewired with a probability p to introduce randomness and simulate information diversity.
+
+Belief updating via weighted averaging:
+
+Agents update their beliefs based on the weighted beliefs of their neighbors (a simplified DeGroot model).
+
+Weights allow some information to influence an agent more strongly than other information, simulating differential reliability in real-world communication.
+
+Iterate over multiple runs:
+
+Belief updates occur over multiple time steps, allowing observation of convergence patterns.
+
+Observations
+
+From running the model:
+
+Convergence is influenced by group structure and rewiring probability:
+
+Large groups with small subgroups and low rewiring probabilities create “echo chambers,” slowing the convergence of beliefs.
+
+Higher rewiring probabilities increase information diversity and speed up convergence.
+
+Regardless of structure, beliefs eventually converge over enough iterations.
+
+
+Insights for natural language modeling:
+
+The simulation demonstrates how local interactions and network structure influence the collective understanding of vague terms.
+
+The simplified model captures the essential dynamics of belief propagation and convergence.
+
+Potential Extensions
+
+Future work could include:
+
+Introducing rogue agents who propagate misinformation or hold fixed beliefs.
+
+Modeling insular subgroups (like online echo chambers) to study belief divergence in extreme conditions.
+
+Exploring optimal group structures and rewiring probabilities for faster convergence.
+
+Usage
+
+The simulation is implemented in Python and requires numpy and matplotlib. Users can:
+
+Define the number of agents, groups, and initial belief probabilities.
+
+Set network parameters such as the number of neighbors (k) and rewiring probability (p).
+
+Run multiple iterations and visualize the evolution of average beliefs over time.
+
+Example visualization:
+<img width="1440" height="900" alt="Screenshot 2026-01-28 at 14 37 44" src="https://github.com/user-attachments/assets/05461824-e046-4c30-95e7-ec237670ce82" />
