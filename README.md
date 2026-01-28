@@ -77,4 +77,10 @@ Set network parameters such as the number of neighbors (k) and rewiring probabil
 Run multiple iterations and visualize the evolution of average beliefs over time.
 
 Example visualization:
-<img width="1440" height="900" alt="Screenshot 2026-01-28 at 14 37 44" src="https://github.com/user-attachments/assets/05461824-e046-4c30-95e7-ec237670ce82" />
+<img width="909" height="688" alt="Screenshot 2026-01-28 at 14 34 22" src="https://github.com/user-attachments/assets/ac6d5dc5-6ce7-45f2-8d31-63cadcc654d4" />
+<img width="1101" height="731" alt="Screenshot 2026-01-28 at 14 36 19" src="https://github.com/user-attachments/assets/39d6eb4f-4857-430f-9c04-6460bca84876" />
+<img width="883" height="642" alt="Screenshot 2026-01-28 at 14 34 26" src="https://github.com/user-attachments/assets/0e77176f-b71e-432c-81e5-58a5ed3012af" />
+<img width="1440" height="900" alt="Screenshot 2026-01-28 at 14 35 17" src="https://github.com/user-attachments/assets/f6579829-e974-4aa7-aaae-e6413b69d2bd" />
+<img width="1082" height="583" alt="Screenshot 2026-01-28 at 14 37 44" src="https://github.com/user-attachments/assets/ab3d428b-1483-41d4-b210-c0e966e9f6d3" />
+<img width="997" height="664" alt="Screenshot 2026-01-28 at 14 35 30" src="https://github.com/user-attachments/assets/49cfc6a3-e52c-438c-bb4e-69eef9367ec3" />
+
