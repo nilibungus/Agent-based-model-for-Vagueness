@@ -1,7 +1,89 @@
 import random
 import numpy as np
-import random
 import matplotlib.pyplot as plt
+#------ PART 1: MAKING A LIST OF AGENTS AND DISTRIBUTING THEM IN GROUPS
+def totalagentsmaker(n):#makes a list with n-many agents, represented by the integers from 1 to n
+    return list(range(n))
+
+def beliefassignment(p, e, agents):# assigns beliefs within a margin e of the initial probability/ degree of belief p, to each of the agents in list agents
+    beliefs  ={}
+    for agent in agents:
+        if random.random() < 0.95:
+            beliefs[agent] = p + random.uniform(0, e)
+        else:
+            beliefs[agent] = random.uniform(p, 1)
+            
+   
+    return beliefs
+
+
+def villagedistributer(num_villages, agents):#distributes the agents in the main list of agents through a number villages
+    if agents % num_villages != 0:
+        raise ValueError("The number of agents must be divisible by the number of villages!")
+    agents = agents.copy()
+    random.shuffle(agents)
+    agents_per_village = round(len(agents)/num_villages) 
+    list_of_villages = [agents[i*agents_per_village: (i+1)*agents_per_village] for i in range(num_villages)]
+    return list_of_villages
+
+# -------- PART 2: MAKE THE GROUPS INTO GRAPHS IN ORDER TO MODEL DIFFERENT RELATIONSHIPS BETWEEN AGENTS
+    
+
+def sym_closure(edges): #Gives the symmetric closure of a list, necessary because the relations between agents are symmetric
+    result = set(edges)
+    for a, b in result:
+        result.add((b,a))
+    
+    return(list(result))
+    
+def make_ring_lattice(nodes, k): #Make a ring lattice out of a list of nodes, where each node has k neighbours
+    edges_of_ring_lattice = []
+    n = len(nodes)
+    half_k = k // 2  # number of neighbours on each side
+
+    for i in range(n):
+        for l in range(1, half_k + 1):
+            j = (i + l) % n
+            edges_of_ring_lattice.append((nodes[i], nodes[j]))
+
+    return sym_closure(edges_of_ring_lattice)
+
+
+def rewiring_ring_lattice(edges, p, nodes):
+    rewired_list = []
+    n = p * 100
+    existing_edges = set()
+    for e in edges:
+        existing_edges.add(tuple(e))
+    for edge in edges:
+        if random.randint(0, 100) < n:
+            attempts = 0
+            max_attempts = 100
+            new_edge = None
+            while attempts < max_attempts:
+                attempts += 1
+                new_node = random.choice(nodes)
+                if new_node != edge[0]:
+                    candidate1 = tuple(sorted((edge[0], new_node)))
+                    candidate2 = tuple(sorted((new_node, edge[0])))
+                    if candidate1 not in existing_edges:
+                        new_edge1 = (edge[0], new_node)
+                        new_edge2 = (edge[0], new_node)
+
+                        existing_edges.add(candidate1)
+                        existing_edges.add(candidate2)
+
+                        break
+
+            if new_edge is None:
+                rewired_list.append(edge)
+            else:
+                rewired_list.append(new_edge1)
+                rewired_list.append(new_edge2)
+        else:
+            rewired_list.append(edge)
+    return rewired_list
+
 def main():
     try:
         n = int(input("How many agents? "))
@@ -146,21 +228,7 @@ def weight_assignment(x):
 
 
 
-def beliefassignment(p, e, agents):# assigns beliefs within a margin e of the initial probability/ degree of belief p, to each of the agents in list agents
-    beliefs  ={}
-    k = len(agents)
-    i = 0
-    while i < k:
-        if random.randint(0, 100) < 95: #with probability 95% assign a degree with margin of deviation from initial probability smaller than e
-           initial_belief = p + random.uniform(0, e)
-        else:
-            initial_belief = random.uniform(p, 1)
-        agent = agents[i]
-        beliefs[agent] = [initial_belief]
 
-        i += 1
-
-    return beliefs
 
 
 
@@ -199,84 +267,10 @@ def makesmallworldnetworksinvillages(villagelist, k, p):
              i += 1
          return smallworldedvillages
 
-def make_ring_lattice(lst, k):
-    edges_of_ring_lattice = []
-    sorted_list = sorted(lst)
-    n = len(sorted_list)
-    half_k = k // 2  # number of neighbours on each side
-
-    for i in range(n):
-        for l in range(1, half_k + 1):
-            j = (i + l) % n
-            edges_of_ring_lattice.append((sorted_list[i], sorted_list[j]))
-
-    return sym_closure(edges_of_ring_lattice)
-def rewiring_ring_lattice(edges, p, nodes):
-    rewired_list = []
-    n = p * 100
-    existing_edges = set()
-    for e in edges:
-        existing_edges.add(tuple(e))
-    for edge in edges:
-        if random.randint(0, 100) < n:
-            attempts = 0
-            max_attempts = 100
-            new_edge = None
-            while attempts < max_attempts:
-                attempts += 1
-                new_node = random.choice(nodes)
-                if new_node != edge[0]:
-                    candidate1 = tuple(sorted((edge[0], new_node)))
-                    candidate2 = tuple(sorted((new_node, edge[0])))
-                    if candidate1 not in existing_edges:
-                        new_edge1 = (edge[0], new_node)
-                        new_edge2 = (edge[0], new_node)
-
-                        existing_edges.add(candidate1)
-                        existing_edges.add(candidate2)
-
-                        break
-
-            if new_edge is None:
-                rewired_list.append(edge)
-            else:
-                rewired_list.append(new_edge1)
-                rewired_list.append(new_edge2)
-        else:
-            rewired_list.append(edge)
-    return rewired_list
-def totalagentsmaker(agents):#makes a list with n-many agents, represented by the integers from 1 to n
-    totalagents=[]
-    i = 0
-    while i < agents :
-        totalagents.append(i)
-        i += 1
-    return totalagents
 
 
-def villagedistributer(villages, agentslist):#distributes the agents in the main list of agent through x many lists, villages is the number of groups we want to distribute the total agents through; and agentslist is the list of agents
-    agents = len(agentslist) # the length of the list of agents
-    x = round(agents/villages) #number of agents per group/ village
-    listofvillages = []
-    j = 0
-    while j < villages: # for j villages, create a list with the agents in that village
-        listofagents  = []
-        l = 0
-        for l in range(x):# each of these groups has x agents, randomly taken from the total list of agents
-            w = random.randint(0, len(agentslist) - 1)
-            listofagents.append(agentslist[w])
-            agentslist.remove(agentslist[w])
-            l += 1
-        listofvillages.append(listofagents)
-        j+=1
 
-    return listofvillages
 
-def sym_closure(lst):
-    for pair in lst:
-        if (pair[1], pair[0]) not in lst:
-            lst.append((pair[1], pair[0]))
-    return(lst)
 
 
 
